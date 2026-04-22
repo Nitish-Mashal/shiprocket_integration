@@ -51,7 +51,7 @@ def update_tracking_status():
         frappe.log_error("Tracking Main Error", str(e))
 
 
-# ✅ CLEAN WEBHOOK (NO sr / shiprocket in name)
+# ✅ CLEAN WEBHOOK
 @frappe.whitelist(allow_guest=True)
 def webhook_listener():
     try:
@@ -64,24 +64,38 @@ def webhook_listener():
             return "Unauthorized"
 
         # 📦 GET PAYLOAD
-        data = frappe.request.get_json()
-        frappe.log_error("WEBHOOK DATA", str(data))
+        data = frappe.request.get_json() or {}
 
-        # 🔍 EXTRACT ORDER ID
+        # 🔍 EXTRACT ORDER ID (ALL CASES HANDLED)
         order_id = (
-            data.get("order_id")
+            data.get("channel_order_id")
+            or data.get("order", {}).get("channel_order_id")
+            or data.get("order_id")
             or data.get("order", {}).get("order_id")
         )
 
-        # 🔍 EXTRACT STATUS
+        # 🔍 EXTRACT STATUS (ALL CASES HANDLED)
         status = (
             data.get("current_status")
             or data.get("shipment_status")
             or data.get("status")
+            or data.get("order_status")
         )
 
         awb = data.get("awb") or data.get("awb_code")
         courier = data.get("courier_name")
+
+        # 🧠 DEBUG LOG (VERY IMPORTANT)
+        frappe.log_error(
+            "WEBHOOK DEBUG",
+            f"""
+            Order ID: {order_id}
+            Status: {status}
+            AWB: {awb}
+            Courier: {courier}
+            Full Data: {data}
+            """
+        )
 
         if not order_id or not status:
             frappe.log_error("Webhook Missing Data", str(data))
@@ -106,7 +120,7 @@ def webhook_listener():
             "rto": "RTO"
         }
 
-        status_lower = (status or "").lower()
+        status_lower = (status or "").lower().strip()
         mapped_status = "Pending"
 
         for key in status_map:
