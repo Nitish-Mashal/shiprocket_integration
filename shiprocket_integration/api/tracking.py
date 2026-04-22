@@ -66,7 +66,7 @@ def webhook_listener():
         # 📦 GET PAYLOAD
         data = frappe.request.get_json() or {}
 
-        # 🔍 EXTRACT ORDER ID (ALL CASES HANDLED)
+        # 🔍 EXTRACT ORDER ID
         order_id = (
             data.get("channel_order_id")
             or data.get("order", {}).get("channel_order_id")
@@ -74,7 +74,7 @@ def webhook_listener():
             or data.get("order", {}).get("order_id")
         )
 
-        # 🔍 EXTRACT STATUS (ALL CASES HANDLED)
+        # 🔍 EXTRACT STATUS
         status = (
             data.get("current_status")
             or data.get("shipment_status")
@@ -82,30 +82,51 @@ def webhook_listener():
             or data.get("order_status")
         )
 
+        shipment_id = data.get("shipment_id")
         awb = data.get("awb") or data.get("awb_code")
         courier = data.get("courier_name")
 
-        # 🧠 DEBUG LOG (VERY IMPORTANT)
-        frappe.log_error(
-            "WEBHOOK DEBUG",
-            f"""
-            Order ID: {order_id}
-            Status: {status}
-            AWB: {awb}
-            Courier: {courier}
-            Full Data: {data}
-            """
-        )
+        # 🧠 DEBUG LOG
+        frappe.log_error("WEBHOOK RAW DATA", str(data))
 
-        if not order_id or not status:
-            frappe.log_error("Webhook Missing Data", str(data))
+        # ❌ VALIDATION
+        if not order_id and not shipment_id:
+            frappe.log_error("Missing Order ID & Shipment ID", str(data))
             return "Missing Data"
 
-        if not frappe.db.exists("Sales Order", order_id):
-            frappe.log_error("Sales Order Not Found", order_id)
-            return "Order Not Found"
+        # 🔧 CLEAN ORDER ID (REMOVE -C, -R, etc.)
+        cleaned_order_id = None
+        if order_id:
+            parts = order_id.split("-")
+            if parts[-1] in ["C", "R"] or len(parts[-1]) <= 2:
+                cleaned_order_id = "-".join(parts[:-1])
+            else:
+                cleaned_order_id = order_id
 
-        sales_order = frappe.get_doc("Sales Order", order_id)
+        # 🔎 FIND SALES ORDER
+        sales_order = None
+
+        # 1️⃣ Exact match
+        if order_id and frappe.db.exists("Sales Order", order_id):
+            sales_order = frappe.get_doc("Sales Order", order_id)
+
+        # 2️⃣ Cleaned order_id match
+        elif cleaned_order_id and frappe.db.exists("Sales Order", cleaned_order_id):
+            sales_order = frappe.get_doc("Sales Order", cleaned_order_id)
+
+        # 3️⃣ Fallback using shipment_id
+        elif shipment_id:
+            so_name = frappe.db.get_value(
+                "Sales Order",
+                {"custom_shiprocket_shipment_id": shipment_id},
+                "name"
+            )
+            if so_name:
+                sales_order = frappe.get_doc("Sales Order", so_name)
+
+        if not sales_order:
+            frappe.log_error("Sales Order Not Found", str(data))
+            return "Order Not Found"
 
         # 🔄 STATUS MAP
         status_map = {
@@ -129,7 +150,7 @@ def webhook_listener():
                 break
 
         # ✅ UPDATE ORDER
-        frappe.db.set_value("Sales Order", order_id, {
+        frappe.db.set_value("Sales Order", sales_order.name, {
             "custom_shipment_status": mapped_status,
             "custom_shiprocket_awb": awb,
             "custom_courier_name": courier,
@@ -140,14 +161,17 @@ def webhook_listener():
 
         frappe.db.commit()
 
-        frappe.log_error("WEBHOOK STATUS UPDATED", f"{order_id} → {mapped_status}")
+        frappe.log_error(
+            "WEBHOOK SUCCESS",
+            f"{sales_order.name} → {mapped_status}"
+        )
 
-        # 🚨 CANCEL ERP ORDER IF NEEDED
+        # 🚨 AUTO CANCEL ERP ORDER
         if mapped_status in ["Cancelled", "RTO"] and sales_order.docstatus == 1:
             try:
                 sales_order.cancel()
                 frappe.db.commit()
-                frappe.log_error("ERP CANCELLED", order_id)
+                frappe.log_error("ERP CANCELLED", sales_order.name)
             except Exception as e:
                 frappe.log_error("Cancel Failed", str(e))
 
