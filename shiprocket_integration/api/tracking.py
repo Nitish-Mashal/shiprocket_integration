@@ -42,6 +42,8 @@ def update_tracking_status():
                     "custom_tracking_url": f"https://shiprocket.co/tracking/{tracking.get('awb_code')}" if tracking.get("awb_code") else ""
                 })
 
+                frappe.db.commit()
+
             except Exception as e:
                 frappe.log_error("Tracking Loop Error", str(e))
 
@@ -49,9 +51,9 @@ def update_tracking_status():
         frappe.log_error("Tracking Main Error", str(e))
 
 
-
+# ✅ CLEAN WEBHOOK (NO sr / shiprocket in name)
 @frappe.whitelist(allow_guest=True)
-def sr_webhook():
+def webhook_listener():
     try:
         # 🔐 TOKEN VALIDATION
         expected_token = frappe.conf.get("shiprocket_webhook_token")
@@ -91,7 +93,7 @@ def sr_webhook():
 
         sales_order = frappe.get_doc("Sales Order", order_id)
 
-        # 🔄 MAP STATUS TO YOUR FIELD OPTIONS
+        # 🔄 STATUS MAP
         status_map = {
             "new": "Pending",
             "created": "Pending",
@@ -104,7 +106,7 @@ def sr_webhook():
             "rto": "RTO"
         }
 
-        status_lower = status.lower()
+        status_lower = (status or "").lower()
         mapped_status = "Pending"
 
         for key in status_map:
@@ -112,7 +114,7 @@ def sr_webhook():
                 mapped_status = status_map[key]
                 break
 
-        # ✅ UPDATE CUSTOM FIELD
+        # ✅ UPDATE ORDER
         frappe.db.set_value("Sales Order", order_id, {
             "custom_shipment_status": mapped_status,
             "custom_shiprocket_awb": awb,
@@ -122,16 +124,18 @@ def sr_webhook():
             )
         })
 
+        frappe.db.commit()
+
         frappe.log_error("WEBHOOK STATUS UPDATED", f"{order_id} → {mapped_status}")
 
-        # 🚨 CANCEL ERP ORDER
-        if mapped_status in ["Cancelled", "RTO"]:
-            if sales_order.docstatus == 1:
-                try:
-                    sales_order.cancel()
-                    frappe.log_error("ERP CANCELLED", order_id)
-                except Exception as e:
-                    frappe.log_error("Cancel Failed", str(e))
+        # 🚨 CANCEL ERP ORDER IF NEEDED
+        if mapped_status in ["Cancelled", "RTO"] and sales_order.docstatus == 1:
+            try:
+                sales_order.cancel()
+                frappe.db.commit()
+                frappe.log_error("ERP CANCELLED", order_id)
+            except Exception as e:
+                frappe.log_error("Cancel Failed", str(e))
 
         return "OK"
 

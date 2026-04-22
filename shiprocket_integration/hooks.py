@@ -20,6 +20,10 @@ scheduler_events = {
     ]
 }
 
+override_whitelisted_methods = {
+    "webhook.listener": "shiprocket_integration.api.tracking.webhook_listener"
+}
+
 
 before_uninstall = "shiprocket_integration.utils.cleanup.remove_custom_fields"
 
