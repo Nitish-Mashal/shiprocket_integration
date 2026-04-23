@@ -1,4 +1,4 @@
-app_name = "shiprocket_integration"
+app_name = "order_package"
 app_title = "Shiprocket Integration"
 app_publisher = "Nitish"
 app_description = "Shiprocket Customapp"
@@ -7,25 +7,25 @@ app_license = "mit"
 
 doc_events = {
     "Item": {
-        "on_update": "shiprocket_integration.api.product.sync_item_to_shiprocket"
+        "on_update": "order_package.api.product.sync_item_to_shiprocket"
     },
     "Sales Order": {
-        "on_submit": "shiprocket_integration.api.order.create_shiprocket_order"
+        "on_submit": "order_package.api.order.create_shiprocket_order"
     }
 }
 
 scheduler_events = {
     "hourly": [
-        "shiprocket_integration.api.tracking.update_tracking_status"
+        "order_package.api.tracking.update_tracking_status"
     ]
 }
 
 override_whitelisted_methods = {
-    "webhook.listener": "shiprocket_integration.api.tracking.webhook_listener"
+    "webhook.listener": "order_package.api.tracking.tracking_update"
 }
 
 
-before_uninstall = "shiprocket_integration.utils.cleanup.remove_custom_fields"
+before_uninstall = "order_package.utils.cleanup.remove_custom_fields"
 
 
 fixtures = [
@@ -52,11 +52,11 @@ fixtures = [
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
 # 	{
-# 		"name": "shiprocket_integration",
-# 		"logo": "/assets/shiprocket_integration/logo.png",
+# 		"name": "order_package",
+# 		"logo": "/assets/order_package/logo.png",
 # 		"title": "Shiprocket Integration",
-# 		"route": "/shiprocket_integration",
-# 		"has_permission": "shiprocket_integration.api.permission.has_app_permission"
+# 		"route": "/order_package",
+# 		"has_permission": "order_package.api.permission.has_app_permission"
 # 	}
 # ]
 
@@ -64,15 +64,15 @@ fixtures = [
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/shiprocket_integration/css/shiprocket_integration.css"
-# app_include_js = "/assets/shiprocket_integration/js/shiprocket_integration.js"
+# app_include_css = "/assets/order_package/css/order_package.css"
+# app_include_js = "/assets/order_package/js/order_package.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/shiprocket_integration/css/shiprocket_integration.css"
-# web_include_js = "/assets/shiprocket_integration/js/shiprocket_integration.js"
+# web_include_css = "/assets/order_package/css/order_package.css"
+# web_include_js = "/assets/order_package/js/order_package.js"
 
 # include custom scss in every website theme (without file extension ".scss")
-# website_theme_scss = "shiprocket_integration/public/scss/website"
+# website_theme_scss = "order_package/public/scss/website"
 
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
@@ -90,7 +90,7 @@ fixtures = [
 # Svg Icons
 # ------------------
 # include app icons in desk
-# app_include_icons = "shiprocket_integration/public/icons.svg"
+# app_include_icons = "order_package/public/icons.svg"
 
 # Home Pages
 # ----------
@@ -114,43 +114,43 @@ fixtures = [
 
 # add methods and filters to jinja environment
 # jinja = {
-# 	"methods": "shiprocket_integration.utils.jinja_methods",
-# 	"filters": "shiprocket_integration.utils.jinja_filters"
+# 	"methods": "order_package.utils.jinja_methods",
+# 	"filters": "order_package.utils.jinja_filters"
 # }
 
 # Installation
 # ------------
 
-# before_install = "shiprocket_integration.install.before_install"
-# after_install = "shiprocket_integration.install.after_install"
+# before_install = "order_package.install.before_install"
+# after_install = "order_package.install.after_install"
 
 # Uninstallation
 # ------------
 
-# before_uninstall = "shiprocket_integration.uninstall.before_uninstall"
-# after_uninstall = "shiprocket_integration.uninstall.after_uninstall"
+# before_uninstall = "order_package.uninstall.before_uninstall"
+# after_uninstall = "order_package.uninstall.after_uninstall"
 
 # Integration Setup
 # ------------------
 # To set up dependencies/integrations with other apps
 # Name of the app being installed is passed as an argument
 
-# before_app_install = "shiprocket_integration.utils.before_app_install"
-# after_app_install = "shiprocket_integration.utils.after_app_install"
+# before_app_install = "order_package.utils.before_app_install"
+# after_app_install = "order_package.utils.after_app_install"
 
 # Integration Cleanup
 # -------------------
 # To clean up dependencies/integrations with other apps
 # Name of the app being uninstalled is passed as an argument
 
-# before_app_uninstall = "shiprocket_integration.utils.before_app_uninstall"
-# after_app_uninstall = "shiprocket_integration.utils.after_app_uninstall"
+# before_app_uninstall = "order_package.utils.before_app_uninstall"
+# after_app_uninstall = "order_package.utils.after_app_uninstall"
 
 # Desk Notifications
 # ------------------
 # See frappe.core.notifications.get_notification_config
 
-# notification_config = "shiprocket_integration.notifications.get_notification_config"
+# notification_config = "order_package.notifications.get_notification_config"
 
 # Permissions
 # -----------
@@ -189,39 +189,39 @@ fixtures = [
 
 # scheduler_events = {
 # 	"all": [
-# 		"shiprocket_integration.tasks.all"
+# 		"order_package.tasks.all"
 # 	],
 # 	"daily": [
-# 		"shiprocket_integration.tasks.daily"
+# 		"order_package.tasks.daily"
 # 	],
 # 	"hourly": [
-# 		"shiprocket_integration.tasks.hourly"
+# 		"order_package.tasks.hourly"
 # 	],
 # 	"weekly": [
-# 		"shiprocket_integration.tasks.weekly"
+# 		"order_package.tasks.weekly"
 # 	],
 # 	"monthly": [
-# 		"shiprocket_integration.tasks.monthly"
+# 		"order_package.tasks.monthly"
 # 	],
 # }
 
 # Testing
 # -------
 
-# before_tests = "shiprocket_integration.install.before_tests"
+# before_tests = "order_package.install.before_tests"
 
 # Overriding Methods
 # ------------------------------
 #
 # override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "shiprocket_integration.event.get_events"
+# 	"frappe.desk.doctype.event.event.get_events": "order_package.event.get_events"
 # }
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {
-# 	"Task": "shiprocket_integration.task.get_dashboard_data"
+# 	"Task": "order_package.task.get_dashboard_data"
 # }
 
 # exempt linked doctypes from being automatically cancelled
@@ -235,13 +235,13 @@ fixtures = [
 
 # Request Events
 # ----------------
-# before_request = ["shiprocket_integration.utils.before_request"]
-# after_request = ["shiprocket_integration.utils.after_request"]
+# before_request = ["order_package.utils.before_request"]
+# after_request = ["order_package.utils.after_request"]
 
 # Job Events
 # ----------
-# before_job = ["shiprocket_integration.utils.before_job"]
-# after_job = ["shiprocket_integration.utils.after_job"]
+# before_job = ["order_package.utils.before_job"]
+# after_job = ["order_package.utils.after_job"]
 
 # User Data Protection
 # --------------------
@@ -271,7 +271,7 @@ fixtures = [
 # --------------------------------
 
 # auth_hooks = [
-# 	"shiprocket_integration.auth.validate"
+# 	"order_package.auth.validate"
 # ]
 
 # Automatically update python controller files with type annotations for this app.

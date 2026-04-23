@@ -8,7 +8,7 @@ on:
   pull_request:
 
 concurrency:
-  group: develop-shiprocket_integration-${{ github.event.number }}
+  group: develop-order_package-${{ github.event.number }}
   cancel-in-progress: true
 
 jobs:
@@ -89,10 +89,10 @@ jobs:
       - name: Install
         working-directory: /home/runner/frappe-bench
         run: |
-          bench get-app shiprocket_integration $GITHUB_WORKSPACE
+          bench get-app order_package $GITHUB_WORKSPACE
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin test_site
-          bench --site test_site install-app shiprocket_integration
+          bench --site test_site install-app order_package
           bench build
         env:
           CI: 'Yes'
@@ -101,6 +101,6 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           bench --site test_site set-config allow_tests true
-          bench --site test_site run-tests --app shiprocket_integration
+          bench --site test_site run-tests --app order_package
         env:
           TYPE: server

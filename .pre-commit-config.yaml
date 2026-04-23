@@ -8,7 +8,7 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        files: "shiprocket_integration.*"
+        files: "order_package.*"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
       - id: check-merge-conflict
       - id: check-ast
@@ -38,11 +38,11 @@ repos:
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
-                shiprocket_integration/public/dist/.*|
+                order_package/public/dist/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
-                shiprocket_integration/templates/includes/.*|
-                shiprocket_integration/public/js/lib/.*
+                order_package/templates/includes/.*|
+                order_package/public/js/lib/.*
             )$
 
 
@@ -55,12 +55,12 @@ repos:
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
-                shiprocket_integration/public/dist/.*|
+                order_package/public/dist/.*|
                 cypress/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
-                shiprocket_integration/templates/includes/.*|
-                shiprocket_integration/public/js/lib/.*
+                order_package/templates/includes/.*|
+                order_package/public/js/lib/.*
             )$
 
 ci:

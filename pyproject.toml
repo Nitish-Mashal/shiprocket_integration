@@ -1,5 +1,5 @@
 [project]
-name = "shiprocket_integration"
+name = "order_package"
 authors = [
     { name = "Nitish", email = "nitish.m@quantumberg.com"}
 ]
